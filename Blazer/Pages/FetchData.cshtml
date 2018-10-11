@@ -1,0 +1,85 @@
+﻿@page "/fetchdata"
+@inject HttpClient Http
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button onclick="@UpdateCountDown">This is date -------------- @date1</button>
+    <p bind="@CountDown">@CountDown</p>
+}
+
+@functions {
+    WeatherForecast[] forecasts;
+    public DateTime EventDate { get { return new DateTime(2018, 06, 11); } }
+    public string CountDownString { get; set; }
+
+
+    private void HandleTimer(object sender, System.Timers.ElapsedEventArgs e)
+    {
+        CountDown = EventDate - DateTime.Now;
+    }
+
+    void UpdateCountDown(UIMouseEventArgs e)
+    {
+        CountDown = EventDate - DateTime.Now;
+    }
+
+    protected override async Task OnInitAsync()
+    {
+        forecasts = await Http.GetJsonAsync<WeatherForecast[]>("/sample-data/weather.json");
+
+        CountDown = EventDate - DateTime.Now;
+        System.Timers.Timer timer = new System.Timers.Timer(1000);
+
+        timer.Elapsed += new System.Timers.ElapsedEventHandler(HandleTimer);
+        timer.Start();
+    }
+
+    class WeatherForecast
+    {
+        public DateTime Date { get; set; }
+        public int TemperatureC { get; set; }
+        public int TemperatureF { get; set; }
+        public string Summary { get; set; }
+    }
+
+    public DateTime date1
+    {
+        get
+        {
+            return DateTime.Now;
+        }
+    }
+
+    public DateTime today { get { return new DateTime(2018, 04, 24); } }
+
+    public TimeSpan CountDown { get; set; }
+}
